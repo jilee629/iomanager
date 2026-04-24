@@ -23,10 +23,10 @@ UMask=007
 WantedBy=multi-user.target
 ```
 ## gunicon 확인
-iomanager$ sudo systemctl daemon-reload
-iomanager$ sudo systemctl start gunicorn
-iomanager$ sudo systemctl enable gunicorn
-iomanager$ uv run gunicorn --bind 0.0.0.0:8000 config.wsgi:application
+- iomanager$ sudo systemctl daemon-reload
+- iomanager$ sudo systemctl start gunicorn
+- iomanager$ sudo systemctl enable gunicorn
+- iomanager$ uv run gunicorn --bind 0.0.0.0:8000 config.wsgi:application
 
 # nginx
 ## nginx sites-available 설정
@@ -58,5 +58,5 @@ server {
 }
 ```
 ## nginx 확인
-iomanager$ sudo ln -s /etc/nginx/sites-available/iomanager /etc/nginx/sites-enabled/
-iomanager$ sudo nginx -t
+- iomanager$ sudo ln -s /etc/nginx/sites-available/iomanager /etc/nginx/sites-enabled/
+- iomanager$ sudo nginx -t
