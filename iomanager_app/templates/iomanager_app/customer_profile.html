@@ -1,0 +1,80 @@
+{% extends "iomanager_app/manager_base.html" %}
+{% load phone_filters %}
+
+{% block title %}고객상세정보 | iomanager{% endblock %}
+
+{% block manager_content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h5 mb-0">고객상세정보 - {{ customer.phone_number|phone_hyphen }}</h2>
+    <a href="{% url 'iomanager_app:customer_info' %}" class="btn btn-outline-secondary btn-sm">목록으로</a>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">정기권 보유현황</div>
+    <div class="card-body">
+        <table class="table table-sm mb-0">
+            <thead>
+                <tr><th>정기권 이름</th><th>잔여 개수</th><th>만료일 수정</th></tr>
+            </thead>
+            <tbody>
+                {% for customer_pass in customer_passes %}
+                <tr>
+                    <td>{{ customer_pass.template.name }}</td>
+                    <td>{{ customer_pass.remaining_count }}</td>
+                    <td>
+                        <form method="post" class="d-flex align-items-center gap-2 mb-0">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="update_pass_expiry">
+                            <input type="hidden" name="customer_pass_id" value="{{ customer_pass.id }}">
+                            <input type="date" name="expires_on" value="{{ customer_pass.expires_on|date:'Y-m-d' }}" class="form-control form-control-sm" required>
+                            <button class="btn btn-outline-primary btn-sm">변경</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" class="text-secondary">보유 중인 정기권이 없습니다.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">입퇴장 내역</div>
+    <div class="card-body">
+        <table class="table table-sm mb-0">
+            <thead>
+                <tr><th>상태</th><th>요청시간</th><th>입장시간</th><th>퇴장시간</th><th>주문내역</th></tr>
+            </thead>
+            <tbody>
+                {% for visit in visits %}
+                <tr>
+                    <td>{{ visit.get_status_display }}</td>
+                    <td>{{ visit.requested_at|date:"Y-m-d H:i:s" }}</td>
+                    <td>{{ visit.entered_at|date:"Y-m-d H:i:s"|default:"-" }}</td>
+                    <td>{{ visit.exited_at|date:"Y-m-d H:i:s"|default:"-" }}</td>
+                    <td>
+                        {% for item in visit.order_items.all %}
+                            {% if item.product %}{{ item.product.name }}{% elif item.product_name_snapshot %}{{ item.product_name_snapshot }}{% else %}(삭제된 상품){% endif %} x {{ item.quantity }}{% if not forloop.last %}, {% endif %}
+                        {% empty %}-{% endfor %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-secondary">입퇴장 내역이 없습니다.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card border-danger">
+    <div class="card-header text-danger">고객 삭제</div>
+    <div class="card-body">
+        <p class="text-secondary mb-3">고객을 삭제하면 관련 방문/정기권/이력 데이터가 함께 삭제될 수 있습니다.</p>
+        <form method="post" onsubmit="return confirm('정말로 이 고객을 삭제하시겠습니까?');">
+            {% csrf_token %}
+            <button class="btn btn-danger btn-sm" name="action" value="delete_customer">고객 삭제</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

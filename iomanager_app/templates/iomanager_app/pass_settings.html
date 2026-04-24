@@ -1,0 +1,41 @@
+{% extends "iomanager_app/manager_base.html" %}
+
+{% block title %}정기권 설정 | iomanager{% endblock %}
+
+{% block manager_content %}
+<div class="card mb-3"><div class="card-body">
+    <form method="post" class="row g-2">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create">
+        <div class="col-md-3"><input name="name" class="form-control" placeholder="정기권 이름" required></div>
+        <div class="col-md-3"><input name="issue_count" type="number" min="1" class="form-control" placeholder="발행 개수" required></div>
+        <div class="col-md-3"><input name="valid_days" type="number" min="1" class="form-control" placeholder="유효기간(일)" required></div>
+        <div class="col-auto"><button class="btn btn-primary">생성</button></div>
+    </form>
+</div></div>
+
+<div class="card"><div class="card-body">
+    <table class="table table-sm">
+        <thead><tr><th>이름</th><th>발행개수</th><th>유효기간(일)</th><th></th></tr></thead>
+        <tbody>
+            {% for template in templates %}
+            <tr>
+                <td>{{ template.name }}</td>
+                <td>{{ template.issue_count }}</td>
+                <td>{{ template.valid_days }}</td>
+                <td class="text-end">
+                    <form method="post" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="template_id" value="{{ template.id }}">
+                        <button class="btn btn-sm btn-outline-danger">삭제</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-secondary">등록된 정기권 템플릿이 없습니다.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div></div>
+{% endblock %}

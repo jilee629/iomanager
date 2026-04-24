@@ -1,0 +1,39 @@
+{% extends "iomanager_app/manager_base.html" %}
+
+{% block title %}상품 설정 | iomanager{% endblock %}
+
+{% block manager_content %}
+<div class="card mb-3"><div class="card-body">
+    <form method="post" class="row g-2">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create">
+        <div class="col-md-4"><input name="name" class="form-control" placeholder="상품 이름" required></div>
+        <div class="col-md-3"><input name="price" type="number" min="0" class="form-control" placeholder="가격" required></div>
+        <div class="col-auto"><button class="btn btn-primary">생성</button></div>
+    </form>
+</div></div>
+
+<div class="card"><div class="card-body">
+    <table class="table table-sm">
+        <thead><tr><th>이름</th><th>가격</th><th></th></tr></thead>
+        <tbody>
+            {% for template in templates %}
+            <tr>
+                <td>{{ template.name }}</td>
+                <td>{{ template.price }}</td>
+                <td class="text-end">
+                    <form method="post" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="template_id" value="{{ template.id }}">
+                        <button class="btn btn-sm btn-outline-danger">삭제</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-secondary">등록된 상품이 없습니다.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div></div>
+{% endblock %}

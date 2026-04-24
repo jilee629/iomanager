@@ -1,0 +1,89 @@
+{% extends "iomanager_app/base.html" %}
+{% load phone_filters %}
+
+{% block title %}고객상세 | iomanager{% endblock %}
+
+{% block content %}
+<h1 class="h5 mb-3">고객상세 - {{ visit.customer.phone_number|phone_hyphen }}</h1>
+<form method="post">
+    {% csrf_token %}
+    <div class="card mb-3">
+        <div class="card-header">주문</div>
+        <div class="card-body">
+            {% for row in product_rows %}
+            <div class="row mb-2 align-items-center order-row" data-product-id="{{ row.product.id }}">
+                <div class="col-5">{{ row.product.name }} ({{ row.product.price }}원)</div>
+                <div class="col-7 d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm order-minus">-</button>
+                    <span class="badge text-bg-primary px-3 py-2 order-count">{{ row.quantity }}</span>
+                    <button type="button" class="btn btn-outline-secondary btn-sm order-plus">+</button>
+                    <button type="button" class="btn btn-outline-danger btn-sm order-clear">초기화</button>
+                    <input type="hidden" name="product_{{ row.product.id }}" value="{{ row.quantity }}" class="order-quantity-input">
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-secondary mb-0">등록된 상품이 없습니다.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header">정기권</div>
+        <div class="card-body">
+            <ul class="mb-3">
+            {% for customer_pass in customer_passes %}
+                <li>{{ customer_pass.template.name }} / 잔여 {{ customer_pass.remaining_count }} / 만료일 {{ customer_pass.expires_on|date:"Y-m-d" }}</li>
+            {% empty %}
+                <li>보유 정기권 없음</li>
+            {% endfor %}
+            </ul>
+            <a href="{% url 'iomanager_app:pass_issue' visit.id %}" class="btn btn-outline-primary btn-sm">발행</a>
+            <a href="{% url 'iomanager_app:pass_use' visit.id %}" class="btn btn-outline-dark btn-sm">사용</a>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        {% if visit.status == "waiting" %}
+        <button class="btn btn-success" name="action" value="enter">입장</button>
+        <button class="btn btn-danger" name="action" value="cancel_waiting">입장취소</button>
+        <button class="btn btn-secondary" name="action" value="confirm">확인(입장처리)</button>
+        {% elif visit.status == "entered" %}
+        <button class="btn btn-warning" name="action" value="exit">퇴장</button>
+        <button class="btn btn-secondary" name="action" value="confirm">
+            {% if visit.re_wait_requested_at %}확인(요청해제){% else %}확인{% endif %}
+        </button>
+        {% else %}
+        <button class="btn btn-secondary" name="action" value="confirm">확인</button>
+        {% endif %}
+    </div>
+</form>
+<script>
+(() => {
+    const rows = document.querySelectorAll(".order-row");
+    for (const row of rows) {
+        const countLabel = row.querySelector(".order-count");
+        const quantityInput = row.querySelector(".order-quantity-input");
+        const minusButton = row.querySelector(".order-minus");
+        const plusButton = row.querySelector(".order-plus");
+        const clearButton = row.querySelector(".order-clear");
+
+        const getCount = () => Number.parseInt(quantityInput.value, 10) || 0;
+        const setCount = (nextCount) => {
+            const safeCount = Math.max(0, nextCount);
+            quantityInput.value = safeCount;
+            countLabel.textContent = safeCount;
+        };
+
+        minusButton.addEventListener("click", () => {
+            setCount(getCount() - 1);
+        });
+        plusButton.addEventListener("click", () => {
+            setCount(getCount() + 1);
+        });
+        clearButton.addEventListener("click", () => {
+            setCount(0);
+        });
+    }
+})();
+</script>
+{% endblock %}

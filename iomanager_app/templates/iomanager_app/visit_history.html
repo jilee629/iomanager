@@ -1,0 +1,38 @@
+{% extends "iomanager_app/manager_base.html" %}
+{% load phone_filters %}
+
+{% block title %}입퇴장 내역 | iomanager{% endblock %}
+
+{% block manager_content %}
+<form method="get" class="row g-2 mb-3">
+    <div class="col-8 col-md-4"><input type="text" name="q" value="{{ q }}" class="form-control" placeholder="전화번호 검색"></div>
+    <div class="col-auto">
+        {% include "iomanager_app/includes/page_size_select.html" %}
+    </div>
+    <div class="col-auto"><button class="btn btn-primary">적용</button></div>
+</form>
+<div class="card"><div class="card-body">
+    <table class="table table-sm">
+        <thead><tr><th>전화번호</th><th>주문상품</th><th>입장시간</th><th>퇴장시간</th></tr></thead>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                <td>{{ row.customer.phone_number|phone_hyphen }}</td>
+                <td>
+                    {% for item in row.order_items.all %}
+                        {% if item.product %}{{ item.product.name }}{% elif item.product_name_snapshot %}{{ item.product_name_snapshot }}{% else %}(삭제된 상품){% endif %} x {{ item.quantity }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                        -
+                    {% endfor %}
+                </td>
+                <td>{{ row.entered_at|date:"Y-m-d H:i:s"|default:"-" }}</td>
+                <td>{{ row.exited_at|date:"Y-m-d H:i:s"|default:"-" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-secondary">내역이 없습니다.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div></div>
+{% include "iomanager_app/includes/pagination_nav.html" with aria_label="입퇴장 내역 페이지" %}
+{% endblock %}

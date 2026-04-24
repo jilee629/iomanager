@@ -1,0 +1,76 @@
+{% extends "iomanager_app/base.html" %}
+{% load phone_filters %}
+
+{% block title %}정기권 발행 | iomanager{% endblock %}
+
+{% block content %}
+<h1 class="h5 mb-3">정기권 발행 - {{ visit.customer.phone_number|phone_hyphen }}</h1>
+<form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label class="form-label">정기권 템플릿</label>
+        <select name="template_id" class="form-select" id="template-select">
+            {% for template in templates %}
+            <option
+                value="{{ template.id }}"
+                data-issue-count="{{ template.issue_count }}"
+                data-default-expires="{{ template.valid_days }}"
+            >
+                {{ template.name }} / {{ template.issue_count }}회 / {{ template.valid_days }}일
+            </option>
+            {% empty %}
+            <option value="">발행 가능한 정기권 템플릿 없음</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">발행 개수</label>
+        <input type="number" min="1" name="issue_count" id="issue-count-input" class="form-control" value="1" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">만료일</label>
+        <input type="date" name="expires_on" id="expires-on-input" class="form-control" required>
+        <div class="form-text">템플릿 기본 유효기간 기준으로 자동 입력되며, 필요 시 수정할 수 있습니다.</div>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-primary" name="action" value="issue" id="issue-submit-button">발행</button>
+        <button class="btn btn-outline-secondary" name="action" value="cancel">취소</button>
+    </div>
+</form>
+<script>
+(() => {
+    const templateSelect = document.getElementById("template-select");
+    const issueCountInput = document.getElementById("issue-count-input");
+    const expiresOnInput = document.getElementById("expires-on-input");
+    const submitButton = document.getElementById("issue-submit-button");
+    if (!templateSelect || !issueCountInput || !expiresOnInput || !submitButton) return;
+
+    const formatDate = (date) => {
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, "0");
+        const dd = String(date.getDate()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}`;
+    };
+
+    const applyTemplateDefaults = () => {
+        const selected = templateSelect.options[templateSelect.selectedIndex];
+        const hasTemplate = !!selected?.value;
+        issueCountInput.disabled = !hasTemplate;
+        expiresOnInput.disabled = !hasTemplate;
+        submitButton.disabled = !hasTemplate;
+        if (!hasTemplate) return;
+
+        const defaultIssueCount = Number.parseInt(selected.dataset.issueCount || "1", 10) || 1;
+        const defaultValidDays = Number.parseInt(selected.dataset.defaultExpires || "0", 10) || 0;
+        const expiresDate = new Date();
+        expiresDate.setDate(expiresDate.getDate() + defaultValidDays);
+
+        issueCountInput.value = defaultIssueCount;
+        expiresOnInput.value = formatDate(expiresDate);
+    };
+
+    templateSelect.addEventListener("change", applyTemplateDefaults);
+    applyTemplateDefaults();
+})();
+</script>
+{% endblock %}

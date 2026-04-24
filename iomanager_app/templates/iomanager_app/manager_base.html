@@ -1,0 +1,67 @@
+{% extends "iomanager_app/base.html" %}
+
+{% block topbar %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">관리자 화면</h1>
+    <div class="d-flex align-items-center gap-2">
+        <span class="text-secondary small">현재시간: <strong id="manager-current-time">-</strong></span>
+        <a href="{% url 'iomanager_app:selection' %}" class="btn btn-outline-secondary btn-sm">선택 화면으로</a>
+        <form method="post" action="{% url 'iomanager_app:logout' %}" class="m-0">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-secondary btn-sm">로그아웃</button>
+        </form>
+    </div>
+</div>
+
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item"><a class="nav-link {% if active_menu == 'status' %}active{% endif %}" href="{% url 'iomanager_app:admin_status' %}">현황</a></li>
+    <li class="nav-item"><a class="nav-link {% if active_menu == 'history' %}active{% endif %}" href="{% url 'iomanager_app:pass_history' %}">내역</a></li>
+    <li class="nav-item"><a class="nav-link {% if active_menu == 'customer' %}active{% endif %}" href="{% url 'iomanager_app:customer_info' %}">고객관리</a></li>
+    <li class="nav-item"><a class="nav-link {% if active_menu == 'settings' %}active{% endif %}" href="{% url 'iomanager_app:product_settings' %}">설정</a></li>
+</ul>
+
+{% if active_menu == "history" %}
+<div class="btn-group mb-3">
+    <a class="btn btn-sm {% if active_submenu == 'pass_history' %}btn-dark{% else %}btn-outline-dark{% endif %}" href="{% url 'iomanager_app:pass_history' %}">정기권 내역</a>
+    <a class="btn btn-sm {% if active_submenu == 'visit_history' %}btn-dark{% else %}btn-outline-dark{% endif %}" href="{% url 'iomanager_app:visit_history' %}">입퇴장 내역</a>
+</div>
+{% elif active_menu == "customer" %}
+<div class="btn-group mb-3">
+    <a class="btn btn-sm {% if active_submenu == 'customer_info' %}btn-dark{% else %}btn-outline-dark{% endif %}" href="{% url 'iomanager_app:customer_info' %}">고객정보</a>
+    <a class="btn btn-sm {% if active_submenu == 'pass_customer' %}btn-dark{% else %}btn-outline-dark{% endif %}" href="{% url 'iomanager_app:pass_customer' %}">정기권 고객</a>
+</div>
+{% elif active_menu == "settings" %}
+<div class="btn-group mb-3">
+    <a class="btn btn-sm {% if active_submenu == 'product_settings' %}btn-dark{% else %}btn-outline-dark{% endif %}" href="{% url 'iomanager_app:product_settings' %}">상품 설정</a>
+    <a class="btn btn-sm {% if active_submenu == 'pass_settings' %}btn-dark{% else %}btn-outline-dark{% endif %}" href="{% url 'iomanager_app:pass_settings' %}">정기권 설정</a>
+    <a class="btn btn-sm {% if active_submenu == 'system_settings' %}btn-dark{% else %}btn-outline-dark{% endif %}" href="{% url 'iomanager_app:system_settings' %}">시스템 설정</a>
+</div>
+{% endif %}
+
+{% block manager_content %}{% endblock %}
+<script>
+(() => {
+    const target = document.getElementById("manager-current-time");
+    if (!target) return;
+
+    const pad2 = (num) => String(num).padStart(2, "0");
+    const renderNow = () => {
+        const now = new Date();
+        const formatted = [
+            now.getFullYear(),
+            pad2(now.getMonth() + 1),
+            pad2(now.getDate()),
+        ].join("-") + " " + [
+            pad2(now.getHours()),
+            pad2(now.getMinutes()),
+            pad2(now.getSeconds()),
+        ].join(":");
+        target.textContent = formatted;
+    };
+    renderNow();
+    setInterval(renderNow, 1000);
+})();
+</script>
+{% endblock %}

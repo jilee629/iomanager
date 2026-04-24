@@ -1,0 +1,121 @@
+{% extends "iomanager_app/base.html" %}
+
+{% block title %}고객 화면 | iomanager{% endblock %}
+
+{% block topbar %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-11">
+        <div class="row g-3">
+            <div class="col-12 col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <h2 class="h5 mb-3">안내</h2>
+                        <div class="text-secondary flex-grow-1 fw-bold" style="white-space: pre-line; font-size: 50px;">
+                            {% if greeting_message %}
+                                {{ greeting_message }}
+                            {% else %}
+                                환영합니다.
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <form method="post" id="waiting-form">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="phone_number" class="form-label">전화번호</label>
+                                <input
+                                    id="phone_number"
+                                    name="phone_number"
+                                    type="text"
+                                    class="form-control form-control-lg text-center"
+                                    inputmode="numeric"
+                                    readonly
+                                    required
+                                >
+                            </div>
+                            <div class="row g-2 mb-3">
+                                {% for n in "123456789" %}
+                                <div class="col-4 d-grid">
+                                    <button type="button" class="btn btn-outline-primary keypad-btn" data-value="{{ n }}">{{ n }}</button>
+                                </div>
+                                {% endfor %}
+                                <div class="col-4 d-grid">
+                                    <button type="button" class="btn btn-outline-secondary keypad-btn" data-action="insert-010">010</button>
+                                </div>
+                                <div class="col-4 d-grid">
+                                    <button type="button" class="btn btn-outline-primary keypad-btn" data-value="0">0</button>
+                                </div>
+                                <div class="col-4 d-grid">
+                                    <button type="button" class="btn btn-outline-secondary keypad-btn" data-action="backspace">삭제</button>
+                                </div>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg keypad-btn">입장대기</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.keypad-btn {
+    min-height: 80px;
+    font-size: 1.8rem;
+}
+</style>
+
+<script>
+(() => {
+    const input = document.getElementById("phone_number");
+    const form = document.getElementById("waiting-form");
+    const maxDigits = 11;
+    const onlyDigits = (value) => value.replace(/\D/g, "");
+    const formatPhone = (digits) => {
+        if (digits.length <= 3) return digits;
+        if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+        return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7, 11)}`;
+    };
+
+    for (const button of document.querySelectorAll(".keypad-btn")) {
+        button.addEventListener("click", () => {
+            const action = button.dataset.action;
+            const value = button.dataset.value;
+            const digits = onlyDigits(input.value);
+
+            if (action === "insert-010") {
+                if (digits.length === 0) {
+                    input.value = formatPhone("010");
+                } else {
+                    const nextDigits = `${digits}010`.slice(0, maxDigits);
+                    input.value = formatPhone(nextDigits);
+                }
+                return;
+            }
+            if (action === "backspace") {
+                input.value = formatPhone(digits.slice(0, -1));
+                return;
+            }
+            if (value && digits.length < maxDigits) {
+                input.value = formatPhone(digits + value);
+            }
+        });
+    }
+
+    form.addEventListener("submit", (event) => {
+        if (onlyDigits(input.value).length !== maxDigits) {
+            event.preventDefault();
+            alert("전화번호 11자리를 입력해주세요.");
+        }
+    });
+})();
+</script>
+{% endblock %}

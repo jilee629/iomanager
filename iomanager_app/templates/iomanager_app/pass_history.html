@@ -1,0 +1,33 @@
+{% extends "iomanager_app/manager_base.html" %}
+{% load phone_filters %}
+
+{% block title %}정기권 내역 | iomanager{% endblock %}
+
+{% block manager_content %}
+<form method="get" class="row g-2 mb-3">
+    <div class="col-8 col-md-4"><input type="text" name="q" value="{{ q }}" class="form-control" placeholder="전화번호 검색"></div>
+    <div class="col-auto">
+        {% include "iomanager_app/includes/page_size_select.html" %}
+    </div>
+    <div class="col-auto"><button class="btn btn-primary">적용</button></div>
+</form>
+<div class="card"><div class="card-body">
+    <table class="table table-sm">
+        <thead><tr><th>전화번호</th><th>정기권</th><th>수량</th><th>상태</th><th>시간</th></tr></thead>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                <td>{{ row.customer.phone_number|phone_hyphen }}</td>
+                <td>{% if row.template %}{{ row.template.name }}{% elif row.template_name_snapshot %}{{ row.template_name_snapshot }}{% else %}(삭제된 템플릿){% endif %}</td>
+                <td>{{ row.quantity }}</td>
+                <td>{{ row.get_status_display }}</td>
+                <td>{{ row.happened_at|date:"Y-m-d H:i:s" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-secondary">내역이 없습니다.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div></div>
+{% include "iomanager_app/includes/pagination_nav.html" with aria_label="정기권 내역 페이지" %}
+{% endblock %}

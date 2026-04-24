@@ -1,0 +1,38 @@
+{% extends "iomanager_app/manager_base.html" %}
+{% load phone_filters %}
+
+{% block title %}정기권 고객 | iomanager{% endblock %}
+
+{% block manager_content %}
+<form method="get" class="row g-2 mb-3">
+    <div class="col-8 col-md-4"><input type="text" name="q" value="{{ q }}" class="form-control" placeholder="전화번호 검색"></div>
+    <div class="col-auto">
+        <select name="sort" class="form-select">
+            <option value="asc" {% if sort == "asc" %}selected{% endif %}>만료일 오름차순</option>
+            <option value="desc" {% if sort == "desc" %}selected{% endif %}>만료일 내림차순</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        {% include "iomanager_app/includes/page_size_select.html" %}
+    </div>
+    <div class="col-auto"><button class="btn btn-primary">적용</button></div>
+</form>
+<div class="card"><div class="card-body">
+    <table class="table table-sm">
+        <thead><tr><th>전화번호</th><th>정기권 이름</th><th>정기권 보유 개수</th><th>만료일</th></tr></thead>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                <td>{{ row.customer.phone_number|phone_hyphen }}</td>
+                <td>{{ row.template.name }}</td>
+                <td>{{ row.remaining_count }}</td>
+                <td>{{ row.expires_on|date:"Y-m-d" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-secondary">정기권 고객 데이터가 없습니다.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div></div>
+{% include "iomanager_app/includes/pagination_nav.html" with aria_label="정기권 고객 페이지" %}
+{% endblock %}

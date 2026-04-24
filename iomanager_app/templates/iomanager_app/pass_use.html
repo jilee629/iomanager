@@ -1,0 +1,81 @@
+{% extends "iomanager_app/base.html" %}
+{% load phone_filters %}
+
+{% block title %}정기권 사용 | iomanager{% endblock %}
+
+{% block content %}
+<h1 class="h5 mb-3">정기권 사용 - {{ visit.customer.phone_number|phone_hyphen }}</h1>
+<form method="post">
+    {% csrf_token %}
+    <div class="mb-3 d-flex justify-content-between align-items-center">
+        <label class="form-label mb-0">정기권 목록</label>
+        <span class="badge text-bg-dark">총 사용 <span id="total-use-count">0</span></span>
+    </div>
+    <div class="d-flex flex-column gap-2 mb-3">
+        {% for customer_pass in customer_passes %}
+        <div class="border rounded p-2 pass-use-row" data-max="{{ customer_pass.remaining_count }}">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong>{{ customer_pass.template.name }}</strong>
+                <small class="text-secondary">잔여 {{ customer_pass.remaining_count }} / 만료 {{ customer_pass.expires_on|date:"Y-m-d" }}</small>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm pass-minus">-</button>
+                <span class="badge text-bg-primary px-3 py-2 pass-count-label">0</span>
+                <button type="button" class="btn btn-outline-secondary btn-sm pass-plus">+</button>
+                <button type="button" class="btn btn-outline-danger btn-sm pass-clear">초기화</button>
+                <input type="hidden" name="use_count_{{ customer_pass.id }}" value="0" class="pass-count-input">
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-secondary">사용 가능한 정기권이 없습니다.</div>
+        {% endfor %}
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-primary" name="action" value="use" id="use-submit-button">사용</button>
+        <button class="btn btn-outline-secondary" name="action" value="cancel">취소</button>
+    </div>
+</form>
+<script>
+(() => {
+    const rows = document.querySelectorAll(".pass-use-row");
+    const totalCountLabel = document.getElementById("total-use-count");
+    const submitButton = document.getElementById("use-submit-button");
+
+    const refreshTotal = () => {
+        let total = 0;
+        for (const row of rows) {
+            const countInput = row.querySelector(".pass-count-input");
+            total += Number.parseInt(countInput.value, 10) || 0;
+        }
+        totalCountLabel.textContent = total;
+        submitButton.disabled = total <= 0;
+    };
+
+    for (const row of rows) {
+        const maxCount = Number.parseInt(row.dataset.max, 10) || 0;
+        const minusButton = row.querySelector(".pass-minus");
+        const plusButton = row.querySelector(".pass-plus");
+        const clearButton = row.querySelector(".pass-clear");
+        const countInput = row.querySelector(".pass-count-input");
+        const countLabel = row.querySelector(".pass-count-label");
+
+        const setCount = (nextCount) => {
+            const safeCount = Math.max(0, Math.min(maxCount, nextCount));
+            countInput.value = safeCount;
+            countLabel.textContent = safeCount;
+            refreshTotal();
+        };
+
+        minusButton.disabled = maxCount <= 0;
+        plusButton.disabled = maxCount <= 0;
+        clearButton.disabled = maxCount <= 0;
+
+        minusButton.addEventListener("click", () => setCount((Number.parseInt(countInput.value, 10) || 0) - 1));
+        plusButton.addEventListener("click", () => setCount((Number.parseInt(countInput.value, 10) || 0) + 1));
+        clearButton.addEventListener("click", () => setCount(0));
+    }
+
+    refreshTotal();
+})();
+</script>
+{% endblock %}

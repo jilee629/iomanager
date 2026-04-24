@@ -1,0 +1,32 @@
+{% extends "iomanager_app/manager_base.html" %}
+{% load phone_filters %}
+
+{% block title %}고객정보 | iomanager{% endblock %}
+
+{% block manager_content %}
+<form method="get" class="row g-2 mb-3">
+    <div class="col-8 col-md-4"><input type="text" name="q" value="{{ q }}" class="form-control" placeholder="전화번호 검색"></div>
+    <div class="col-auto">
+        {% include "iomanager_app/includes/page_size_select.html" %}
+    </div>
+    <div class="col-auto"><button class="btn btn-primary">적용</button></div>
+</form>
+<div class="card"><div class="card-body">
+    <table class="table table-sm">
+        <thead><tr><th>전화번호</th><th>마지막 방문일</th><th>방문회수</th><th>정기권</th></tr></thead>
+        <tbody>
+            {% for customer in rows %}
+            <tr>
+                <td><a href="{% url 'iomanager_app:customer_profile' customer.id %}">{{ customer.phone_number|phone_hyphen }}</a></td>
+                <td>{{ customer.last_visit_at|date:"Y-m-d H:i:s"|default:"-" }}</td>
+                <td>{{ customer.visit_count }}</td>
+                <td>{% if customer.has_active_pass %}보유{% else %}-{% endif %}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-secondary">고객 데이터가 없습니다.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div></div>
+{% include "iomanager_app/includes/pagination_nav.html" with aria_label="고객정보 페이지" %}
+{% endblock %}

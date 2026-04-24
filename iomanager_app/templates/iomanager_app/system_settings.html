@@ -1,0 +1,19 @@
+{% extends "iomanager_app/manager_base.html" %}
+
+{% block title %}시스템 설정 | iomanager{% endblock %}
+
+{% block manager_content %}
+<div class="card">
+    <div class="card-header">시스템 설정</div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="greeting_message" class="form-label">고객 화면 인사말</label>
+                <textarea id="greeting_message" name="greeting_message" class="form-control" rows="8" placeholder="고객 화면 왼쪽에 표시할 인사말을 입력하세요.">{{ setting.greeting_message }}</textarea>
+            </div>
+            <button class="btn btn-primary">저장</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

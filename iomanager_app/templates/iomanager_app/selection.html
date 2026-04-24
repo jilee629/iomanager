@@ -1,0 +1,19 @@
+{% extends "iomanager_app/base.html" %}
+
+{% block title %}화면 선택 | iomanager{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-4 text-center">화면을 선택하세요</h1>
+                <div class="d-grid gap-3">
+                    <a href="{% url 'iomanager_app:customer_home' %}" class="btn btn-lg btn-outline-primary">고객 화면</a>
+                    <a href="{% url 'iomanager_app:admin_home' %}" class="btn btn-lg btn-outline-dark">관리자 화면</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

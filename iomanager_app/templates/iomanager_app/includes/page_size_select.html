@@ -1,0 +1,6 @@
+<select name="page_size" class="form-select">
+    <option value="10" {% if page_size == 10 %}selected{% endif %}>10개</option>
+    <option value="20" {% if page_size == 20 %}selected{% endif %}>20개</option>
+    <option value="50" {% if page_size == 50 %}selected{% endif %}>50개</option>
+    <option value="100" {% if page_size == 100 %}selected{% endif %}>100개</option>
+</select>
