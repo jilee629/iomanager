@@ -1,5 +1,7 @@
 # 정기권 만료 처리 crontab
+```
 5 0 * * * /home/ubuntu/iomanager/scripts/run_expire_passes.sh
+```
 
 # gunicorn 
 ## gunicorn service 설정
