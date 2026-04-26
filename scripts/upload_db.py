@@ -9,13 +9,14 @@ from googleapiclient.http import MediaFileUpload
 from googleapiclient.discovery import build
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+CRED_DIR = os.path.join(BASE_DIR, 'credentials')
 
 def authenticate_google_drive():
     SCOPES = ['https://www.googleapis.com/auth/drive.file']
     creds = None
 
-    token_file = os.path.join(BASE_DIR, 'token.json')
-    credentials_file = os.path.join(BASE_DIR, 'credentials.json')
+    token_file = os.path.join(CRED_DIR, 'token.json')
+    credentials_file = os.path.join(CRED_DIR, 'credentials.json')
 
     if os.path.exists(token_file):
         creds = Credentials.from_authorized_user_file(token_file, SCOPES)
