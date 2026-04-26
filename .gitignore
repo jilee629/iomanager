@@ -13,3 +13,4 @@ secrets.json
 credentials.json
 token.json
 logs/
+*.xlsx
