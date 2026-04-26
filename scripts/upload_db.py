@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from pathlib import Path
 from datetime import datetime
 import json, os
@@ -49,15 +51,8 @@ def upload_file(folder_id, file_name, mtype=None):
     service = build('drive', 'v3', credentials=creds)
 
     local_file_path = os.path.join(BASE_DIR, file_name)
-    if mtype == "xlsx":
-        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    elif mtype == 'sqlite3':
-        mimetype='application/x-sqlite3'
-    else:
-        mimetype='text/plain'
-
+    mimetype='application/x-sqlite3'
     media = MediaFileUpload(local_file_path, mimetype=mimetype, resumable=True)
-
     drive_file_name = file_name
     file_metadata = {
                     'name': drive_file_name,
@@ -69,8 +64,8 @@ def upload_file(folder_id, file_name, mtype=None):
     print(f'UPLOADING {file_name} IS OK.')
     return True
 
-file_date = datetime.now().strftime("%Y%m%d")
+file_date = datetime.now().strftime("%Y-%m-%d")
 folder_id = create_drive_folder(file_date)
-file_name = os.path.join(BASE_DIR, 'db.sqlite3')
 
+file_name = 'db.sqlite3'
 upload_file(folder_id, file_name, mtype='sqlite3')
