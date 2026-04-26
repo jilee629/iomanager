@@ -1,10 +1,8 @@
-#!/usr/bin/env -S uv run python
-
+from pathlib import Path
+from datetime import datetime
 import sqlite3
 import os
-from pathlib import Path
 import pandas as pd
-from datetime import datetime
 
 def export_db_to_excel(db_path):
     try:

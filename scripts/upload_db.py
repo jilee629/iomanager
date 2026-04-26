@@ -1,5 +1,3 @@
-#!/usr/bin/env -S uv run python
-
 from pathlib import Path
 from datetime import datetime
 import json, os
