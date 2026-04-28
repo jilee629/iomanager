@@ -12,12 +12,7 @@
                 <div class="card shadow-sm h-100">
                     <div class="card-body p-4 d-flex flex-column">
                         <h2 class="h5 mb-3">안내</h2>
-                        <div class="text-secondary flex-grow-1 fw-bold" style="white-space: pre-line; font-size: 50px;">
-                            {% if greeting_message %}
-                                {{ greeting_message }}
-                            {% else %}
-                                환영합니다.
-                            {% endif %}
+                        <div class="text-secondary flex-grow-1 fw-bold" style="white-space: pre-line; font-size: 50px;">{% if greeting_message %}{{ greeting_message }}{% else %}환영합니다.{% endif %}
                         </div>
                     </div>
                 </div>
