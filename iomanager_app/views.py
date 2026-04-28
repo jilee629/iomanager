@@ -1,5 +1,5 @@
 import re
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
 from django.db import IntegrityError, transaction
 
 from django.contrib import messages
@@ -70,6 +70,13 @@ def _get_system_setting():
     return SystemSetting.objects.create()
 
 
+def _today_bounds():
+    today = timezone.localdate()
+    start = timezone.make_aware(datetime.combine(today, time.min))
+    end = start + timedelta(days=1)
+    return today, start, end
+
+
 class IomanagerLoginView(LoginView):
     template_name = "iomanager_app/login.html"
     redirect_authenticated_user = True
@@ -98,26 +105,34 @@ def customer_home_view(request):
         if len(phone_number) != 11:
             return redirect("iomanager_app:customer_home")
 
-        customer, _ = Customer.objects.get_or_create(phone_number=phone_number)
-        today = timezone.localdate()
-        active_visit = (
-            VisitSession.objects.filter(
-                customer=customer,
-                requested_at__date=today,
-            )
-            .filter(Q(status=VisitSession.Status.WAITING) | Q(status=VisitSession.Status.ENTERED))
-            .order_by("-requested_at")
-            .first()
-        )
+        _, start_of_day, end_of_day = _today_bounds()
 
-        if active_visit:
-            if active_visit.status == VisitSession.Status.ENTERED:
-                if not active_visit.re_wait_requested_at:
+        with transaction.atomic():
+            try:
+                customer, _ = Customer.objects.get_or_create(phone_number=phone_number)
+            except IntegrityError:
+                customer = Customer.objects.get(phone_number=phone_number)
+
+            customer = Customer.objects.select_for_update().get(pk=customer.pk)
+            active_visit = (
+                VisitSession.objects.select_for_update()
+                .filter(
+                    customer=customer,
+                    requested_at__gte=start_of_day,
+                    requested_at__lt=end_of_day,
+                )
+                .filter(Q(status=VisitSession.Status.WAITING) | Q(status=VisitSession.Status.ENTERED))
+                .order_by("-requested_at")
+                .first()
+            )
+
+            if active_visit:
+                if active_visit.status == VisitSession.Status.ENTERED and not active_visit.re_wait_requested_at:
                     active_visit.re_wait_requested_at = timezone.now()
                     active_visit.save(update_fields=["re_wait_requested_at", "updated_at"])
-            return redirect("iomanager_app:customer_home")
+                return redirect("iomanager_app:customer_home")
 
-        VisitSession.objects.create(customer=customer, status=VisitSession.Status.WAITING)
+            VisitSession.objects.create(customer=customer, status=VisitSession.Status.WAITING)
         return redirect("iomanager_app:customer_home")
 
     setting = _get_system_setting()
@@ -162,15 +177,18 @@ def _parse_int_field(raw_value, *, default=0, min_value=0):
     return parsed
 
 
-@login_required
-def admin_status_view(request):
-    today = timezone.localdate()
-    active_passes_subquery = CustomerPass.objects.filter(customer_id=OuterRef("customer_id"), remaining_count__gt=0, expires_on__gt=today)
+def _build_admin_status_context():
+    today, start_of_day, end_of_day = _today_bounds()
+    active_passes_subquery = CustomerPass.objects.filter(
+        customer_id=OuterRef("customer_id"),
+        remaining_count__gt=0,
+        expires_on__gt=today,
+    )
     waiting_visits = (
         VisitSession.objects.select_related("customer")
         .prefetch_related("order_items__product")
         .annotate(has_active_pass=Exists(active_passes_subquery))
-        .filter(requested_at__date=today)
+        .filter(requested_at__gte=start_of_day, requested_at__lt=end_of_day)
         .filter(
             Q(status=VisitSession.Status.WAITING)
             | Q(status=VisitSession.Status.ENTERED, re_wait_requested_at__isnull=False)
@@ -180,31 +198,45 @@ def admin_status_view(request):
         VisitSession.objects.select_related("customer")
         .prefetch_related("order_items__product")
         .annotate(has_active_pass=Exists(active_passes_subquery))
-        .filter(requested_at__date=today)
+        .filter(requested_at__gte=start_of_day, requested_at__lt=end_of_day)
         .filter(
             Q(status=VisitSession.Status.EXITED)
             | Q(status=VisitSession.Status.ENTERED, re_wait_requested_at__isnull=True)
         )
     )
     product_totals = list(
-        VisitOrderItem.objects.filter(visit__requested_at__date=today)
+        VisitOrderItem.objects.filter(
+            visit__requested_at__gte=start_of_day,
+            visit__requested_at__lt=end_of_day,
+        )
         .values("product__name")
         .annotate(total_quantity=Sum("quantity"))
         .order_by("-total_quantity", "product__name")
     )
-    product_totals_grand_total = sum(row["total_quantity"] for row in product_totals)
+    return {
+        "waiting_visits": waiting_visits,
+        "active_visits": active_visits,
+        "product_totals": product_totals,
+        "product_totals_grand_total": sum(row["total_quantity"] for row in product_totals),
+        "now": timezone.localtime(),
+    }
+
+
+@login_required
+def admin_status_view(request):
     return render(
         request,
         "iomanager_app/admin_status.html",
         {
             **_manager_context("status", ""),
-            "waiting_visits": waiting_visits,
-            "active_visits": active_visits,
-            "product_totals": product_totals,
-            "product_totals_grand_total": product_totals_grand_total,
-            "now": timezone.localtime(),
+            **_build_admin_status_context(),
         },
     )
+
+
+@login_required
+def admin_status_panel_view(request):
+    return render(request, "iomanager_app/includes/admin_status_panel.html", _build_admin_status_context())
 
 
 @login_required

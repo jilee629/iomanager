@@ -4,6 +4,7 @@ from django.urls import path
 from .views import (
     IomanagerLoginView,
     admin_home_view,
+    admin_status_panel_view,
     admin_status_view,
     customer_detail_view,
     customer_info_view,
@@ -31,6 +32,7 @@ urlpatterns = [
     path("customer/", customer_home_view, name="customer_home"),
     path("manager/", admin_home_view, name="admin_home"),
     path("manager/status/", admin_status_view, name="admin_status"),
+    path("manager/status/panel/", admin_status_panel_view, name="admin_status_panel"),
     path("manager/history/pass/", pass_history_view, name="pass_history"),
     path("manager/history/visit/", visit_history_view, name="visit_history"),
     path("manager/customer/info/", customer_info_view, name="customer_info"),
