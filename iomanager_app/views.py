@@ -6,7 +6,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.core.paginator import Paginator
-from django.db.models import Exists, OuterRef, Q, Sum
+from django.db.models import Count, Exists, Max, OuterRef, Q, Sum
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -177,6 +178,33 @@ def _parse_int_field(raw_value, *, default=0, min_value=0):
     return parsed
 
 
+def _build_admin_status_version_token(start_of_day, end_of_day):
+    visit_stats = VisitSession.objects.filter(requested_at__gte=start_of_day, requested_at__lt=end_of_day).aggregate(
+        latest_updated_at=Max("updated_at"),
+        total_count=Count("id"),
+    )
+    order_stats = VisitOrderItem.objects.filter(
+        visit__requested_at__gte=start_of_day,
+        visit__requested_at__lt=end_of_day,
+    ).aggregate(
+        latest_id=Max("id"),
+        total_count=Count("id"),
+    )
+    visit_updated = (
+        timezone.localtime(visit_stats["latest_updated_at"]).isoformat()
+        if visit_stats["latest_updated_at"]
+        else ""
+    )
+    return "|".join(
+        [
+            visit_updated,
+            str(visit_stats["total_count"] or 0),
+            str(order_stats["latest_id"] or 0),
+            str(order_stats["total_count"] or 0),
+        ]
+    )
+
+
 def _build_admin_status_context():
     today, start_of_day, end_of_day = _today_bounds()
     active_passes_subquery = CustomerPass.objects.filter(
@@ -218,6 +246,7 @@ def _build_admin_status_context():
         "active_visits": active_visits,
         "product_totals": product_totals,
         "product_totals_grand_total": sum(row["total_quantity"] for row in product_totals),
+        "status_version": _build_admin_status_version_token(start_of_day, end_of_day),
         "now": timezone.localtime(),
     }
 
@@ -237,6 +266,12 @@ def admin_status_view(request):
 @login_required
 def admin_status_panel_view(request):
     return render(request, "iomanager_app/includes/admin_status_panel.html", _build_admin_status_context())
+
+
+@login_required
+def admin_status_version_view(request):
+    _, start_of_day, end_of_day = _today_bounds()
+    return JsonResponse({"version": _build_admin_status_version_token(start_of_day, end_of_day)})
 
 
 @login_required

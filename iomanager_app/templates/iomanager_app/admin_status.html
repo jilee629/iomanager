@@ -4,7 +4,11 @@
 {% block title %}현황 | iomanager{% endblock %}
 
 {% block manager_content %}
-<div id="admin-status-panel" data-refresh-url="{% url 'iomanager_app:admin_status_panel' %}">
+<div
+    id="admin-status-panel"
+    data-refresh-url="{% url 'iomanager_app:admin_status_panel' %}"
+    data-version-url="{% url 'iomanager_app:admin_status_version' %}"
+>
     {% include "iomanager_app/includes/admin_status_panel.html" %}
 </div>
 <script>
@@ -12,46 +16,63 @@
     const panel = document.getElementById("admin-status-panel");
     if (!panel) return;
 
+    const versionUrl = panel.dataset.versionUrl;
     const refreshUrl = panel.dataset.refreshUrl;
-    const refreshIntervalMs = 2000;
-    let refreshTimer = null;
+    const pollIntervalMs = 500;
+    let pollTimer = null;
     let inFlight = false;
+    let lastVersion = panel.firstElementChild?.dataset.version ?? "";
 
-    const scheduleRefresh = (delay = refreshIntervalMs) => {
-        window.clearTimeout(refreshTimer);
-        refreshTimer = window.setTimeout(refreshPanel, delay);
+    const schedulePoll = (delay = pollIntervalMs) => {
+        window.clearTimeout(pollTimer);
+        pollTimer = window.setTimeout(checkVersion, delay);
     };
 
-    const refreshPanel = async () => {
+    const refreshPanel = async (expectedVersion) => {
+        const response = await fetch(refreshUrl, {
+            headers: {"X-Requested-With": "XMLHttpRequest"},
+        });
+        if (!response.ok) {
+            throw new Error(`Failed to refresh status panel: ${response.status}`);
+        }
+        panel.innerHTML = await response.text();
+        lastVersion = panel.firstElementChild?.dataset.version ?? expectedVersion;
+    };
+
+    const checkVersion = async () => {
         if (inFlight || document.hidden) {
-            scheduleRefresh();
+            schedulePoll();
             return;
         }
 
         inFlight = true;
         try {
-            const response = await fetch(refreshUrl, {
+            const response = await fetch(versionUrl, {
                 headers: {"X-Requested-With": "XMLHttpRequest"},
             });
             if (!response.ok) {
-                throw new Error(`Failed to refresh status panel: ${response.status}`);
+                throw new Error(`Failed to fetch status version: ${response.status}`);
             }
-            panel.innerHTML = await response.text();
+            const payload = await response.json();
+            const nextVersion = payload.version ?? "";
+            if (nextVersion !== lastVersion) {
+                await refreshPanel(nextVersion);
+            }
         } catch (error) {
             console.error(error);
         } finally {
             inFlight = false;
-            scheduleRefresh();
+            schedulePoll();
         }
     };
 
     document.addEventListener("visibilitychange", () => {
         if (!document.hidden) {
-            scheduleRefresh(0);
+            schedulePoll(0);
         }
     });
 
-    scheduleRefresh();
+    schedulePoll(0);
 })();
 </script>
 {% endblock %}

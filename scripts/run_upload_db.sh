@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 set -euo pipefail
 cd /home/ubuntu/iomanager
 if command -v uv >/dev/null 2>&1; then
