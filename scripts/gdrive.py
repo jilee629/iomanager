@@ -1,22 +1,19 @@
-from pathlib import Path
-from datetime import datetime
-import json, os
-
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.http import MediaFileUpload
 from googleapiclient.discovery import build
+from pathlib import Path
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-CRED_DIR = os.path.join(BASE_DIR, 'credentials')
 
 def authenticate_google_drive():
     SCOPES = ['https://www.googleapis.com/auth/drive.file']
     creds = None
 
-    token_file = os.path.join(CRED_DIR, 'token.json')
-    credentials_file = os.path.join(CRED_DIR, 'credentials.json')
+    token_file = BASE_DIR / 'credentials' / 'token.json'
+    credentials_file = BASE_DIR / 'credentials' / 'credentials.json'
 
     if os.path.exists(token_file):
         creds = Credentials.from_authorized_user_file(token_file, SCOPES)
@@ -49,8 +46,15 @@ def upload_file(folder_id, file_name, mtype=None):
     creds = authenticate_google_drive()
     service = build('drive', 'v3', credentials=creds)
 
-    local_file_path = os.path.join(BASE_DIR, file_name)
-    mimetype='application/x-sqlite3'
+    local_file_path = BASE_DIR / file_name
+
+    if mtype == "sqlite":
+        mimetype='application/x-sqlite3'
+    elif mtype == "xlsx":
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    else:
+        mimetype='text/plain'
+        
     media = MediaFileUpload(local_file_path, mimetype=mimetype, resumable=True)
     drive_file_name = file_name
     file_metadata = {
@@ -62,9 +66,3 @@ def upload_file(folder_id, file_name, mtype=None):
     file.get('id')
     print(f'UPLOADING {file_name} IS OK.')
     return True
-
-file_date = datetime.now().strftime("%Y-%m-%d")
-folder_id = create_drive_folder(file_date)
-
-file_name = 'db.sqlite3'
-upload_file(folder_id, file_name, mtype='sqlite3')

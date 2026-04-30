@@ -1,7 +1,6 @@
 from pathlib import Path
 from datetime import datetime
 import sqlite3
-import os
 import pandas as pd
 
 def export_db_to_excel(db_path):
@@ -51,5 +50,5 @@ def export_db_to_excel(db_path):
 # 실행
 if __name__ == "__main__":
     BASE_DIR = Path(__file__).resolve().parent.parent
-    db_file = os.path.join(BASE_DIR, 'db.sqlite3')
+    db_file = BASE_DIR / 'db.sqlite3'
     saved_file = export_db_to_excel(db_file)
