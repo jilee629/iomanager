@@ -3,7 +3,8 @@
 - ~/iomanager$ uv sync
 
 # iptabes 허용
-- ~/iomanager$ sudo iptables -I INPUT 6 -p tcp --dport 80 -j ACCEPT
+- ~/iomanager$ sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+- ~/iomanager$ sudo iptables -L INPUT -vn
 - ~/iomanager$ sudo apt install iptables-persistent
 - ~/iomanager$ sudo netfilter-persistent save
 
@@ -20,10 +21,9 @@ User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/iomanager
 ExecStart=/home/ubuntu/iomanager/.venv/bin/gunicorn \
-        --workers 2 \
+        --workers 3 \
         --bind unix:/home/ubuntu/iomanager/gunicorn.sock \
         config.wsgi:application
-UMask=007
 
 [Install]
 WantedBy=multi-user.target
@@ -42,14 +42,6 @@ WantedBy=multi-user.target
 server {
         listen 80;
         server_name 40.233.21.11;
-
-        # listen 443 ssl;
-        # 인증서 경로 설정
-        # ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
-        # ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
-        # 보안을 위한 추가 설정 (선택 사항)
-        # ssl_protocols TLSv1.2 TLSv1.3;
-        # ssl_ciphers HIGH:!aNULL:!MD5;
 
         location = /favicon.ico { access_log off; log_not_found off; }
 
