@@ -4,7 +4,6 @@ from google.auth.transport.requests import Request
 from googleapiclient.http import MediaFileUpload
 from googleapiclient.discovery import build
 from pathlib import Path
-import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -15,7 +14,7 @@ def authenticate_google_drive():
     token_file = BASE_DIR / 'credentials' / 'token.json'
     credentials_file = BASE_DIR / 'credentials' / 'credentials.json'
 
-    if os.path.exists(token_file):
+    if token_file.exists():
         creds = Credentials.from_authorized_user_file(token_file, SCOPES)
 
     if not creds or not creds.valid:
