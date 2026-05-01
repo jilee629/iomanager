@@ -2,7 +2,7 @@
 - ~/iomanager$ curl -LsSf https://astral.sh/uv/install.sh | sh
 - ~/iomanager$ uv sync
 
-# ufw 포트 허용
+# iptabes 허용
 - ~/iomanager$ sudo iptables -I INPUT 6 -p tcp --dport 80 -j ACCEPT
 - ~/iomanager$ sudo apt install iptables-persistent
 - ~/iomanager$ sudo netfilter-persistent save
@@ -27,11 +27,12 @@ UMask=007
 
 [Install]
 WantedBy=multi-user.target
-```
-## gunicon 확인
+
 - ~/iomanager$ sudo systemctl daemon-reload
 - ~/iomanager$ sudo systemctl start gunicorn
 - ~/iomanager$ sudo systemctl enable gunicorn
+```
+## gunicon 확인
 - ~/iomanager$ uv run gunicorn --bind 0.0.0.0:8000 config.wsgi:application
 
 # nginx
@@ -61,6 +62,7 @@ server {
                 proxy_pass http://unix:/home/ubuntu/iomanager/gunicorn.sock;
         }
 }
+
 ~/iomanager$ sudo ln -s /etc/nginx/sites-available/iomanager /etc/nginx/sites-enabled/
 ```
 ## nginx 확인
