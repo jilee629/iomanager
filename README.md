@@ -1,16 +1,11 @@
 # uv 설치
-- ~$ curl -LsSf https://astral.sh/uv/install.sh | sh
+- ~/iomanager$ curl -LsSf https://astral.sh/uv/install.sh | sh
 - ~/iomanager$ uv sync
 
 # ufw 포트 허용
-~/iomanager$ sudo iptables -I INPUT 6 -p tcp --dport 80 -j ACCEPT
-~/iomanager$ sudo apt install iptables-persistent
-~/iomanager$ sudo netfilter-persistent save
-
-# 정기권 만료 처리 crontab
-```
-5 0 * * * /home/ubuntu/iomanager/scripts/run_expire_passes.sh
-```
+- ~/iomanager$ sudo iptables -I INPUT 6 -p tcp --dport 80 -j ACCEPT
+- ~/iomanager$ sudo apt install iptables-persistent
+- ~/iomanager$ sudo netfilter-persistent save
 
 # gunicorn 
 ## gunicorn service 설정
@@ -66,10 +61,15 @@ server {
                 proxy_pass http://unix:/home/ubuntu/iomanager/gunicorn.sock;
         }
 }
+~/iomanager$ sudo ln -s /etc/nginx/sites-available/iomanager /etc/nginx/sites-enabled/
 ```
 ## nginx 확인
-- iomanager$ sudo ln -s /etc/nginx/sites-available/iomanager /etc/nginx/sites-enabled/
 - iomanager$ sudo nginx -t
+
+# 정기권 만료 처리 crontab
+```
+5 0 * * * /home/ubuntu/iomanager/scripts/run_expire_passes.sh
+```
 
 ## permission error
 ```
