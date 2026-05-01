@@ -1,3 +1,12 @@
+# uv 설치
+- ~$ curl -LsSf https://astral.sh/uv/install.sh | sh
+- ~/iomanager$ uv sync
+
+# ufw 포트 허용
+~/iomanager$ sudo iptables -I INPUT 6 -p tcp --dport 80 -j ACCEPT
+~/iomanager$ sudo apt install iptables-persistent
+~/iomanager$ sudo netfilter-persistent save
+
 # 정기권 만료 처리 crontab
 ```
 5 0 * * * /home/ubuntu/iomanager/scripts/run_expire_passes.sh
@@ -6,7 +15,7 @@
 # gunicorn 
 ## gunicorn service 설정
 ```
-iomanager$ cat /etc/systemd/system/gunicorn.service 
+~/iomanager$ cat /etc/systemd/system/gunicorn.service 
 [Unit]
 Description=gunicorn daemon
 After=network.target
@@ -25,27 +34,26 @@ UMask=007
 WantedBy=multi-user.target
 ```
 ## gunicon 확인
-- iomanager$ sudo systemctl daemon-reload
-- iomanager$ sudo systemctl start gunicorn
-- iomanager$ sudo systemctl enable gunicorn
-- iomanager$ uv run gunicorn --bind 0.0.0.0:8000 config.wsgi:application
+- ~/iomanager$ sudo systemctl daemon-reload
+- ~/iomanager$ sudo systemctl start gunicorn
+- ~/iomanager$ sudo systemctl enable gunicorn
+- ~/iomanager$ uv run gunicorn --bind 0.0.0.0:8000 config.wsgi:application
 
 # nginx
 ## nginx sites-available 설정
 ```
-iomanager$ cat /etc/nginx/sites-available/iomanager 
+~/iomanager$ cat /etc/nginx/sites-available/iomanager 
 server {
         listen 80;
-        listen 443 ssl;
         server_name 40.233.21.11;
 
+        # listen 443 ssl;
         # 인증서 경로 설정
-        ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
-        ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
-
+        # ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
+        # ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
         # 보안을 위한 추가 설정 (선택 사항)
-        ssl_protocols TLSv1.2 TLSv1.3;
-        ssl_ciphers HIGH:!aNULL:!MD5;
+        # ssl_protocols TLSv1.2 TLSv1.3;
+        # ssl_ciphers HIGH:!aNULL:!MD5;
 
         location = /favicon.ico { access_log off; log_not_found off; }
 
@@ -62,3 +70,11 @@ server {
 ## nginx 확인
 - iomanager$ sudo ln -s /etc/nginx/sites-available/iomanager /etc/nginx/sites-enabled/
 - iomanager$ sudo nginx -t
+
+## permission error
+```
+sudo tail -f /var/log/nginx/error.log
+unix:/home/ubuntu/iomanager/gunicorn.sock failed (13: Permission denied) 
+```
+- ~/iomanager$ chmod 755 /home/ubuntu/iomanager
+- ~/iomanager$ chmod 755 /home/ubuntu
