@@ -52,7 +52,7 @@ server {
                 proxy_pass http://unix:/home/ubuntu/iomanager/gunicorn.sock;
         }
 }
-'''
+```
 - $ sudo ln -s /etc/nginx/sites-available/iomanager /etc/nginx/sites-enabled/
 
 
