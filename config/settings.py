@@ -37,6 +37,12 @@ def get_secret(setting, secrets=secrets):
 
 SECRET_KEY = get_secret("SECRET_KEY")
 
+aligo_file = BASE_DIR / 'credentials' / 'aligo.json'
+ALIGO = {}
+if aligo_file.exists():
+    with open(aligo_file) as f:
+        ALIGO = json.loads(f.read() or "{}")
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
@@ -134,3 +140,25 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {"format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s"},
+    },
+    "handlers": {
+        "alimtalk_file": {
+            "class": "logging.FileHandler",
+            "filename": str(BASE_DIR / "logs" / "alimtalk.log"),
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "iomanager_app.notifications": {
+            "handlers": ["alimtalk_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}

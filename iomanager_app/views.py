@@ -22,6 +22,7 @@ from .models import (
     VisitOrderItem,
     VisitSession,
 )
+from .notifications import send_alimtalk
 
 PAGE_SIZE_CHOICES = (10, 20, 50, 100)
 
@@ -176,6 +177,13 @@ def _parse_int_field(raw_value, *, default=0, min_value=0):
     if parsed < min_value:
         return None
     return parsed
+
+
+def _phone_hyphen(value):
+    digits = "".join(ch for ch in str(value) if ch.isdigit())
+    if len(digits) == 11:
+        return f"{digits[:3]}-{digits[3:7]}-{digits[7:]}"
+    return digits
 
 
 def _build_admin_status_version_token(start_of_day, end_of_day):
@@ -519,8 +527,10 @@ def customer_detail_view(request, visit_id):
 
     if request.method == "POST":
         action = request.POST.get("action")
+        quantity_by_name = {}
         for product in products:
             qty = int(request.POST.get(f"product_{product.id}", "0") or 0)
+            quantity_by_name[product.name] = qty
             item = existing.get(product.id)
             if qty <= 0:
                 if item:
@@ -551,6 +561,16 @@ def customer_detail_view(request, visit_id):
 
         if action == "enter" and visit.status == VisitSession.Status.WAITING:
             _set_entered(visit)
+            send_alimtalk(
+                "entry",
+                visit.customer.phone_number,
+                {
+                    "전화번호": _phone_hyphen(visit.customer.phone_number),
+                    "입장시간": timezone.localtime(visit.entered_at).strftime("%Y-%m-%d %H:%M"),
+                    "대인": quantity_by_name.get("대인", 0),
+                    "소인": quantity_by_name.get("소인", 0),
+                },
+            )
         elif action == "confirm" and visit.status == VisitSession.Status.WAITING:
             _set_entered(visit)
         elif action == "confirm" and visit.status == VisitSession.Status.ENTERED and visit.re_wait_requested_at:
@@ -673,6 +693,25 @@ def pass_use_view(request, visit_id):
                         customer_pass=customer_pass,
                         visit=visit,
                     )
+
+            used_lines = []
+            remaining_lines = []
+            for pass_id, use_count in requested_counts:
+                customer_pass = locked_passes[pass_id]
+                used_lines.append(f"{customer_pass.template.name} {use_count} 장")
+                remaining_lines.append(
+                    f"{customer_pass.template.name} {customer_pass.remaining_count} 장(만료일: {customer_pass.expires_on.isoformat()})"
+                )
+            send_alimtalk(
+                "pass_use",
+                visit.customer.phone_number,
+                {
+                    "전화번호": _phone_hyphen(visit.customer.phone_number),
+                    "사용시간": timezone.localtime().strftime("%Y-%m-%d %H:%M"),
+                    "사용내역": "\n".join(used_lines),
+                    "잔여내역": "\n".join(remaining_lines),
+                },
+            )
 
             messages.success(request, "정기권 사용이 적용되었습니다.")
         return redirect("iomanager_app:customer_detail", visit_id=visit.id)
