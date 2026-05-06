@@ -50,7 +50,7 @@ def send_alimtalk(template_key, receiver_phone, context):
         "sender": config["sender"],
         "receiver_1": receiver_phone,
         "subject_1": template.get("subject", ""),
-        "emtitle_1": "점핑몬스터 미사점",
+        "emtitle_1": template.get("emtitle", ""),
         "message_1": rendered_message,
         "testMode": "Y" if config.get("test_mode") else "N",
     }

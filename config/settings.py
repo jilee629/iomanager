@@ -24,18 +24,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 secret_file = BASE_DIR / 'credentials' / 'secrets.json'
-
 with open(secret_file) as f:
     secrets = json.loads(f.read())
+    SECRET_KEY = secrets["SECRET_KEY"]
 
-def get_secret(setting, secrets=secrets):
-    try:
-        return secrets[setting]
-    except KeyError:
-        error_msg = "Set the {} environment variable".format(setting)
-        raise ImproperlyConfigured(error_msg)
-
-SECRET_KEY = get_secret("SECRET_KEY")
 
 aligo_file = BASE_DIR / 'credentials' / 'aligo.json'
 ALIGO = {}
