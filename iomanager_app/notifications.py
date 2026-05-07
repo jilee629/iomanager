@@ -24,7 +24,20 @@ def _render_template(template_text, context):
 
 def send_alimtalk(template_key, receiver_phone, context):
     config = getattr(settings, "ALIGO", {}) or {}
-    templates = config.get("templates") or {}
+    templates = {
+        "entry": {
+            "tpl_code": "UH_6793",
+            "subject": "입장",
+            "emtitle": "점핑몬스터 미사점",
+            "message": "#{전화번호} 고객님\n\n#{입장시간}\n■ 대인: #{대인} 명\n■ 소인: #{소인} 명\n\n점핑몬스터 미사점에 입장하였습니다."
+        },
+        "pass_use": {
+            "tpl_code": "UH_6794",
+            "subject": "정기권 사용",
+            "emtitle": "점핑몬스터 미사점",
+            "message": "#{전화번호} 고객님\n\n#{사용시간}\n■ 사용: #{사용내역}\n■ 잔여: #{잔여내역}\n\n정기권이 사용되었습니다."
+        }
+    }
     template = templates.get(template_key)
     if not template:
         logger.info("Skip alimtalk: missing template key '%s'", template_key)
@@ -46,9 +59,9 @@ def send_alimtalk(template_key, receiver_phone, context):
         "apikey": config["apikey"],
         "userid": config["userid"],
         "senderkey": config["senderkey"],
-        "tpl_code": template.get("tpl_code", ""),
         "sender": config["sender"],
         "receiver_1": receiver_phone,
+        "tpl_code": template.get("tpl_code", ""),
         "subject_1": template.get("subject", ""),
         "emtitle_1": template.get("emtitle", ""),
         "message_1": rendered_message,

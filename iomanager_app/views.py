@@ -700,7 +700,7 @@ def pass_use_view(request, visit_id):
                 customer_pass = locked_passes[pass_id]
                 used_lines.append(f"{customer_pass.template.name} {use_count} 장")
                 remaining_lines.append(
-                    f"{customer_pass.template.name} {customer_pass.remaining_count} 장(만료일: {customer_pass.expires_on.isoformat()})"
+                    f"{customer_pass.template.name} {customer_pass.remaining_count} 장 (만료일: {customer_pass.expires_on.isoformat()})"
                 )
             send_alimtalk(
                 "pass_use",
