@@ -1,12 +1,12 @@
 # uv 설치
-- $ curl -LsSf https://astral.sh/uv/install.sh | sh
-- ~/iomanager$ uv sync
+- curl -LsSf https://astral.sh/uv/install.sh | sh
+- uv sync
 
 # iptabes 허용
-- $ sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
-- $ sudo iptables -L INPUT -vn
-- $ sudo apt install iptables-persistent
-- $ sudo netfilter-persistent save
+- sudo iptables -I INPUT -p tcp --dport 80 -j ACCEPT
+- sudo iptables -L INPUT -vn
+- sudo apt install iptables-persistent
+- sudo netfilter-persistent save
 
 # gunicorn 
 ## /etc/systemd/system/gunicorn.service
@@ -27,12 +27,12 @@ ExecStart=/home/ubuntu/iomanager/.venv/bin/gunicorn \
 [Install]
 WantedBy=multi-user.target
 ```
-- $ sudo systemctl daemon-reload
-- $ sudo systemctl start gunicorn
-- $ sudo systemctl enable gunicorn
+- sudo systemctl daemon-reload
+- sudo systemctl start gunicorn
+- sudo systemctl enable gunicorn
 
 ## gunicon 테스트
-- ~/iomanager$ uv run gunicorn --bind 0.0.0.0:8000 config.wsgi:application
+- uv run gunicorn --bind 0.0.0.0:8000 config.wsgi:application
 
 # nginx
 ## /etc/nginx/sites-available/iomanager
@@ -53,7 +53,7 @@ server {
         }
 }
 ```
-- $ sudo ln -s /etc/nginx/sites-available/iomanager /etc/nginx/sites-enabled/
+- sudo ln -s /etc/nginx/sites-available/iomanager /etc/nginx/sites-enabled/
 
 
 ## nginx 테스트
@@ -64,12 +64,10 @@ server {
 sudo tail -f /var/log/nginx/error.log
 unix:/home/ubuntu/iomanager/gunicorn.sock failed (13: Permission denied) 
 ```
-- $ chmod 755 /home/ubuntu/iomanager
-- $ chmod 755 /home/ubuntu
+- chmod 755 /home/ubuntu/iomanager
+- chmod 755 /home/ubuntu
 
 # 정기권 만료 처리 crontab
 ```
 5 0 * * * /home/ubuntu/iomanager/scripts/run_expire_passes.sh
 ```
-
-
