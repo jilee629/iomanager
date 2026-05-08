@@ -6,12 +6,8 @@
 {% block manager_content %}
 <form method="get" class="row g-2 mb-3">
     <div class="col-8 col-md-4"><input type="text" name="q" value="{{ q }}" class="form-control" placeholder="전화번호 검색"></div>
-    <div class="col-auto">
-        <select name="sort" class="form-select">
-            <option value="asc" {% if sort == "asc" %}selected{% endif %}>만료일 오름차순</option>
-            <option value="desc" {% if sort == "desc" %}selected{% endif %}>만료일 내림차순</option>
-        </select>
-    </div>
+    <input type="hidden" name="sort_by" value="{{ sort_by|default:'expires_on' }}">
+    <input type="hidden" name="sort_dir" value="{{ sort_dir|default:'asc' }}">
     <div class="col-auto">
         {% include "iomanager_app/includes/page_size_select.html" %}
     </div>
@@ -19,7 +15,30 @@
 </form>
 <div class="card"><div class="card-body">
     <table class="table table-sm">
-        <thead><tr><th>전화번호</th><th>정기권 이름</th><th>정기권 보유 개수</th><th>만료일</th></tr></thead>
+        <thead>
+            <tr>
+                <th>
+                    <a class="text-decoration-none" href="?q={{ q }}&page_size={{ page_size }}&sort_by=phone_number&sort_dir={% if sort_by == 'phone_number' and sort_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                        전화번호 {% if sort_by == "phone_number" %}{% if sort_dir == "asc" %}↑{% else %}↓{% endif %}{% endif %}
+                    </a>
+                </th>
+                <th>
+                    <a class="text-decoration-none" href="?q={{ q }}&page_size={{ page_size }}&sort_by=template_name&sort_dir={% if sort_by == 'template_name' and sort_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                        정기권 이름 {% if sort_by == "template_name" %}{% if sort_dir == "asc" %}↑{% else %}↓{% endif %}{% endif %}
+                    </a>
+                </th>
+                <th>
+                    <a class="text-decoration-none" href="?q={{ q }}&page_size={{ page_size }}&sort_by=remaining_count&sort_dir={% if sort_by == 'remaining_count' and sort_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                        정기권 보유 개수 {% if sort_by == "remaining_count" %}{% if sort_dir == "asc" %}↑{% else %}↓{% endif %}{% endif %}
+                    </a>
+                </th>
+                <th>
+                    <a class="text-decoration-none" href="?q={{ q }}&page_size={{ page_size }}&sort_by=expires_on&sort_dir={% if sort_by == 'expires_on' and sort_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                        만료일 {% if sort_by == "expires_on" %}{% if sort_dir == "asc" %}↑{% else %}↓{% endif %}{% endif %}
+                    </a>
+                </th>
+            </tr>
+        </thead>
         <tbody>
             {% for row in rows %}
             <tr>

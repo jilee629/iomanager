@@ -6,6 +6,8 @@
 {% block manager_content %}
 <form method="get" class="row g-2 mb-3">
     <div class="col-8 col-md-4"><input type="text" name="q" value="{{ q }}" class="form-control" placeholder="전화번호 검색"></div>
+    <input type="hidden" name="sort_by" value="{{ sort_by|default:'last_visit_at' }}">
+    <input type="hidden" name="sort_dir" value="{{ sort_dir|default:'desc' }}">
     <div class="col-auto">
         {% include "iomanager_app/includes/page_size_select.html" %}
     </div>
@@ -13,7 +15,30 @@
 </form>
 <div class="card"><div class="card-body">
     <table class="table table-sm">
-        <thead><tr><th>전화번호</th><th>마지막 방문일</th><th>방문회수</th><th>정기권</th></tr></thead>
+        <thead>
+            <tr>
+                <th>
+                    <a class="text-decoration-none" href="?q={{ q }}&page_size={{ page_size }}&sort_by=phone_number&sort_dir={% if sort_by == 'phone_number' and sort_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                        전화번호 {% if sort_by == "phone_number" %}{% if sort_dir == "asc" %}↑{% else %}↓{% endif %}{% endif %}
+                    </a>
+                </th>
+                <th>
+                    <a class="text-decoration-none" href="?q={{ q }}&page_size={{ page_size }}&sort_by=last_visit_at&sort_dir={% if sort_by == 'last_visit_at' and sort_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                        마지막 방문일 {% if sort_by == "last_visit_at" %}{% if sort_dir == "asc" %}↑{% else %}↓{% endif %}{% endif %}
+                    </a>
+                </th>
+                <th>
+                    <a class="text-decoration-none" href="?q={{ q }}&page_size={{ page_size }}&sort_by=visit_count&sort_dir={% if sort_by == 'visit_count' and sort_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                        방문회수 {% if sort_by == "visit_count" %}{% if sort_dir == "asc" %}↑{% else %}↓{% endif %}{% endif %}
+                    </a>
+                </th>
+                <th>
+                    <a class="text-decoration-none" href="?q={{ q }}&page_size={{ page_size }}&sort_by=has_active_pass&sort_dir={% if sort_by == 'has_active_pass' and sort_dir == 'asc' %}desc{% else %}asc{% endif %}">
+                        정기권 {% if sort_by == "has_active_pass" %}{% if sort_dir == "asc" %}↑{% else %}↓{% endif %}{% endif %}
+                    </a>
+                </th>
+            </tr>
+        </thead>
         <tbody>
             {% for customer in rows %}
             <tr>

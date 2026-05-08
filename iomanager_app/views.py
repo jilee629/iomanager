@@ -333,13 +333,30 @@ def visit_history_view(request):
 @login_required
 def customer_info_view(request):
     q = _normalized_phone_query(request)
+    sort_by = request.GET.get("sort_by", "last_visit_at")
+    sort_dir = request.GET.get("sort_dir", "desc")
     today = timezone.localdate()
     customers = Customer.objects.all()
     if q:
         customers = customers.filter(phone_number__icontains=q)
 
     active_passes = CustomerPass.objects.filter(customer_id=OuterRef("pk"), remaining_count__gt=0, expires_on__gt=today)
-    rows = customers.annotate(has_active_pass=Exists(active_passes)).order_by("-last_visit_at", "-id")
+    rows = customers.annotate(has_active_pass=Exists(active_passes))
+    allowed_sort_fields = {
+        "phone_number": "phone_number",
+        "last_visit_at": "last_visit_at",
+        "visit_count": "visit_count",
+        "has_active_pass": "has_active_pass",
+    }
+    if sort_by not in allowed_sort_fields:
+        sort_by = "last_visit_at"
+    if sort_dir not in ("asc", "desc"):
+        sort_dir = "desc"
+    order_field = allowed_sort_fields[sort_by]
+    if sort_dir == "desc":
+        rows = rows.order_by(f"-{order_field}", "-id")
+    else:
+        rows = rows.order_by(order_field, "id")
     page_obj, rows, page_size = _paginate_queryset(request, rows)
     return render(
         request,
@@ -349,6 +366,8 @@ def customer_info_view(request):
             "rows": page_obj.object_list,
             "page_obj": page_obj,
             "q": q,
+            "sort_by": sort_by,
+            "sort_dir": sort_dir,
             "page_size": page_size,
         },
     )
@@ -409,16 +428,27 @@ def customer_profile_view(request, customer_id):
 @login_required
 def pass_customer_view(request):
     q = _normalized_phone_query(request)
-    sort = request.GET.get("sort", "asc")
+    sort_by = request.GET.get("sort_by", "expires_on")
+    sort_dir = request.GET.get("sort_dir", "asc")
+    allowed_sort_fields = {
+        "phone_number": "customer__phone_number",
+        "template_name": "template__name",
+        "remaining_count": "remaining_count",
+        "expires_on": "expires_on",
+    }
     today = timezone.localdate()
     rows = CustomerPass.objects.select_related("customer", "template").filter(remaining_count__gt=0, expires_on__gt=today)
     if q:
         rows = rows.filter(customer__phone_number__icontains=q)
-    if sort == "desc":
-        rows = rows.order_by("-expires_on", "-id")
+    if sort_by not in allowed_sort_fields:
+        sort_by = "expires_on"
+    if sort_dir not in ("asc", "desc"):
+        sort_dir = "asc"
+    order_field = allowed_sort_fields[sort_by]
+    if sort_dir == "desc":
+        rows = rows.order_by(f"-{order_field}", "-id")
     else:
-        sort = "asc"
-        rows = rows.order_by("expires_on", "id")
+        rows = rows.order_by(order_field, "id")
     page_obj, rows, page_size = _paginate_queryset(request, rows)
     return render(
         request,
@@ -428,7 +458,8 @@ def pass_customer_view(request):
             "rows": page_obj.object_list,
             "page_obj": page_obj,
             "q": q,
-            "sort": sort,
+            "sort_by": sort_by,
+            "sort_dir": sort_dir,
             "page_size": page_size,
         },
     )

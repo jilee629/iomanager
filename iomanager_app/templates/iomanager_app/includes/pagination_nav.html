@@ -3,7 +3,7 @@
     <ul class="pagination pagination-sm mb-0">
         {% if page_obj.has_previous %}
         <li class="page-item">
-            <a class="page-link" href="?q={{ q }}{% if sort %}&sort={{ sort }}{% endif %}&page_size={{ page_size }}&page={{ page_obj.previous_page_number }}">이전</a>
+            <a class="page-link" href="?q={{ q }}{% if sort %}&sort={{ sort }}{% endif %}{% if sort_by %}&sort_by={{ sort_by }}{% endif %}{% if sort_dir %}&sort_dir={{ sort_dir }}{% endif %}&page_size={{ page_size }}&page={{ page_obj.previous_page_number }}">이전</a>
         </li>
         {% else %}
         <li class="page-item disabled"><span class="page-link">이전</span></li>
@@ -13,7 +13,7 @@
         </li>
         {% if page_obj.has_next %}
         <li class="page-item">
-            <a class="page-link" href="?q={{ q }}{% if sort %}&sort={{ sort }}{% endif %}&page_size={{ page_size }}&page={{ page_obj.next_page_number }}">다음</a>
+            <a class="page-link" href="?q={{ q }}{% if sort %}&sort={{ sort }}{% endif %}{% if sort_by %}&sort_by={{ sort_by }}{% endif %}{% if sort_dir %}&sort_dir={{ sort_dir }}{% endif %}&page_size={{ page_size }}&page={{ page_obj.next_page_number }}">다음</a>
         </li>
         {% else %}
         <li class="page-item disabled"><span class="page-link">다음</span></li>
