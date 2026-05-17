@@ -253,7 +253,6 @@ def _build_admin_status_context():
         "waiting_visits": waiting_visits,
         "active_visits": active_visits,
         "product_totals": product_totals,
-        "product_totals_grand_total": sum(row["total_quantity"] for row in product_totals),
         "status_version": _build_admin_status_version_token(start_of_day, end_of_day),
         "now": timezone.localtime(),
     }
