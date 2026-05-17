@@ -1,12 +1,12 @@
 {% load phone_filters %}
 <div class="d-flex flex-column gap-3" data-version="{{ status_version }}">
     <div class="card">
-        <div class="card-header d-flex justify-content-start align-items-center">
+        <!-- <div class="card-header d-flex justify-content-start align-items-center"> -->
+        <div class="card-header">
             {% for row in product_totals %}
             <span class="badge text-bg-dark">{{ row.product__name }} {{ row.total_quantity }}명</span>
             {% endfor %}
         </div>
-
     </div>
     <div class="card">
         <div class="card-header">입장대기</div>
