@@ -410,7 +410,8 @@ def customer_profile_view(request, customer_id):
         .filter(remaining_count__gt=0, expires_on__gt=today)
         .order_by("expires_on", "id")
     )
-    visits = customer.visits.prefetch_related("order_items__product").order_by("-requested_at")
+    visits = customer.visits.prefetch_related("order_items__product").order_by("-entered_at")
+    passes = customer.pass_transactions.select_related("template")
     return render(
         request,
         "iomanager_app/customer_profile.html",
@@ -420,6 +421,7 @@ def customer_profile_view(request, customer_id):
             "customer_passes": customer_passes,
             "today": today,
             "visits": visits,
+            "passes": passes,
         },
     )
 

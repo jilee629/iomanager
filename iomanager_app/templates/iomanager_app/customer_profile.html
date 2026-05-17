@@ -44,13 +44,11 @@
     <div class="card-body">
         <table class="table table-sm mb-0">
             <thead>
-                <tr><th>상태</th><th>요청시간</th><th>입장시간</th><th>퇴장시간</th><th>주문내역</th></tr>
+                <tr><th>입장시간</th><th>퇴장시간</th><th>주문내역</th></tr>
             </thead>
             <tbody>
                 {% for visit in visits %}
                 <tr>
-                    <td>{{ visit.get_status_display }}</td>
-                    <td>{{ visit.requested_at|date:"Y-m-d H:i:s" }}</td>
                     <td>{{ visit.entered_at|date:"Y-m-d H:i:s"|default:"-" }}</td>
                     <td>{{ visit.exited_at|date:"Y-m-d H:i:s"|default:"-" }}</td>
                     <td>
@@ -60,7 +58,30 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="5" class="text-secondary">입퇴장 내역이 없습니다.</td></tr>
+                <tr><td colspan="3" class="text-secondary">입퇴장 내역이 없습니다.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">정기권 내역</div>
+    <div class="card-body">
+        <table class="table table-sm mb-0">
+            <thead>
+                <tr><th>시간</th><th>정기권</th><th>개수</th><th>상태</th></tr>
+            </thead>
+            <tbody>
+                {% for pass in passes %}
+                <tr>
+                    <td>{{ pass.happened_at|date:"Y-m-d H:i:s"|default:"-" }}</td>
+                    <td>{{ pass.template }}
+                    <td>{{ pass.quantity }}</td>
+                    <td>{{ pass.get_status_display }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-secondary">정기권 내역이 없습니다.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
