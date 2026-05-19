@@ -9,6 +9,6 @@ wheels/
 # Virtual environments
 .venv
 db.sqlite3
-credentials/
-logs/
+*.json
+*.log
 *.xlsx
