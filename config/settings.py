@@ -38,7 +38,7 @@ if aligo_file.exists():
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['134.185.125.219', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['40.233.21.11', 'localhost', '127.0.0.1', '134.185.125.219']
 
 
 # Application definition
