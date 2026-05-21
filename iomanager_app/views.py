@@ -162,7 +162,7 @@ def _resolve_page_size(request, default=20):
     return page_size if page_size in PAGE_SIZE_CHOICES else default
 
 
-def _paginate_queryset(request, queryset, *, default_page_size=20):
+def _paginate_queryset(request, queryset, *, default_page_size=100):
     page_size = _resolve_page_size(request, default=default_page_size)
     paginator = Paginator(queryset, page_size)
     page_obj = paginator.get_page(request.GET.get("page"))
