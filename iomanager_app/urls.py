@@ -20,6 +20,7 @@ from .views import (
     root_redirect,
     selection_view,
     system_settings_view,
+    visit_entry_stats_view,
     visit_history_view,
 )
 
@@ -37,6 +38,7 @@ urlpatterns = [
     path("manager/status/version/", admin_status_version_view, name="admin_status_version"),
     path("manager/history/pass/", pass_history_view, name="pass_history"),
     path("manager/history/visit/", visit_history_view, name="visit_history"),
+    path("manager/history/visit-stats/", visit_entry_stats_view, name="visit_entry_stats"),
     path("manager/customer/info/", customer_info_view, name="customer_info"),
     path("manager/customer/info/<int:customer_id>/", customer_profile_view, name="customer_profile"),
     path("manager/customer/pass/", pass_customer_view, name="pass_customer"),

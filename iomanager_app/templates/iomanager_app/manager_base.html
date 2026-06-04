@@ -26,6 +26,7 @@
 <div class="btn-group mb-3">
     <a class="btn btn-sm {% if active_submenu == 'pass_history' %}btn-dark{% else %}btn-outline-dark{% endif %}" href="{% url 'iomanager_app:pass_history' %}">정기권 내역</a>
     <a class="btn btn-sm {% if active_submenu == 'visit_history' %}btn-dark{% else %}btn-outline-dark{% endif %}" href="{% url 'iomanager_app:visit_history' %}">입퇴장 내역</a>
+    <a class="btn btn-sm {% if active_submenu == 'visit_entry_stats' %}btn-dark{% else %}btn-outline-dark{% endif %}" href="{% url 'iomanager_app:visit_entry_stats' %}">입퇴장통계</a>
 </div>
 {% elif active_menu == "customer" %}
 <div class="btn-group mb-3">

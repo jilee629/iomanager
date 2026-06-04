@@ -1,4 +1,5 @@
 import re
+from collections import defaultdict
 from datetime import date, datetime, time, timedelta
 from django.db import IntegrityError, transaction
 
@@ -6,7 +7,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.core.paginator import Paginator
-from django.db.models import Count, Exists, Max, OuterRef, Q, Sum
+from django.db.models import Count, Exists, Max, OuterRef, Q, Sum, Value
+from django.db.models.functions import Coalesce, TruncDate
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
@@ -74,6 +76,72 @@ def _today_bounds():
     start = timezone.make_aware(datetime.combine(today, time.min))
     end = start + timedelta(days=1)
     return today, start, end
+
+
+def _parse_date_param(raw_value):
+    if not raw_value:
+        return None
+    try:
+        return date.fromisoformat(raw_value)
+    except ValueError:
+        return None
+
+
+def _parse_date_range(request):
+    today = timezone.localdate()
+    date_to = _parse_date_param(request.GET.get("to")) or today
+    date_from = _parse_date_param(request.GET.get("from")) or (date_to - timedelta(days=29))
+    if date_from > date_to:
+        messages.warning(request, "시작일이 종료일보다 늦어 기간을 맞췄습니다.")
+        date_from, date_to = date_to, date_from
+    start_dt = timezone.make_aware(datetime.combine(date_from, time.min))
+    end_dt = timezone.make_aware(datetime.combine(date_to, time.min)) + timedelta(days=1)
+    return date_from, date_to, start_dt, end_dt
+
+
+def _build_visit_entry_stats_rows(date_from, date_to, start_dt, end_dt):
+    product_columns = list(ProductTemplate.objects.order_by("id").values_list("name", flat=True))
+    aggregated = (
+        VisitOrderItem.objects.filter(
+            visit__status__in=[VisitSession.Status.ENTERED, VisitSession.Status.EXITED],
+            visit__entered_at__isnull=False,
+            visit__entered_at__gte=start_dt,
+            visit__entered_at__lt=end_dt,
+        )
+        .annotate(
+            day=TruncDate("visit__entered_at", tzinfo=timezone.get_current_timezone()),
+            product_label=Coalesce("product__name", "product_name_snapshot", Value("")),
+        )
+        .values("day", "product_label")
+        .annotate(total_quantity=Sum("quantity"))
+        .order_by("-day", "product_label")
+    )
+    totals_by_day = defaultdict(dict)
+    for row in aggregated:
+        day = row["day"]
+        if day is None:
+            continue
+        label = row["product_label"] or ""
+        totals_by_day[day][label] = row["total_quantity"] or 0
+
+    rows = []
+    day = date_to
+    while day >= date_from:
+        day_totals = totals_by_day.get(day, {})
+        quantity_cells = [day_totals.get(name, 0) for name in product_columns]
+        extra_total = sum(
+            qty for label, qty in day_totals.items() if label and label not in product_columns
+        )
+        row_total = sum(quantity_cells) + extra_total
+        rows.append(
+            {
+                "date": day,
+                "quantity_cells": quantity_cells,
+                "row_total": row_total,
+            }
+        )
+        day -= timedelta(days=1)
+    return product_columns, rows
 
 
 class IomanagerLoginView(LoginView):
@@ -324,6 +392,23 @@ def visit_history_view(request):
             "page_obj": page_obj,
             "q": q,
             "page_size": page_size,
+        },
+    )
+
+
+@login_required
+def visit_entry_stats_view(request):
+    date_from, date_to, start_dt, end_dt = _parse_date_range(request)
+    product_columns, rows = _build_visit_entry_stats_rows(date_from, date_to, start_dt, end_dt)
+    return render(
+        request,
+        "iomanager_app/visit_entry_stats.html",
+        {
+            **_manager_context("history", "visit_entry_stats"),
+            "rows": rows,
+            "product_columns": product_columns,
+            "date_from": date_from,
+            "date_to": date_to,
         },
     )
 
