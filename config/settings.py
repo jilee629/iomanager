@@ -29,17 +29,12 @@ with open(secret_file) as f:
     SECRET_KEY = secrets["SECRET_KEY"]
 
 
-aligo_file = BASE_DIR / 'credentials' / 'aligo.json'
-ALIGO = {}
-if aligo_file.exists():
-    with open(aligo_file) as f:
-        ALIGO = json.loads(f.read() or "{}")
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
 ALLOWED_HOSTS = ['40.233.21.11', 'localhost', '127.0.0.1', '134.185.125.219']
 
+LOGIN_URL = '/login/'
 
 # Application definition
 
@@ -132,6 +127,17 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+
+# Security for Alimtalk
+
+aligo_file = BASE_DIR / 'credentials' / 'aligo.json'
+ALIGO = {}
+if aligo_file.exists():
+    with open(aligo_file) as f:
+        ALIGO = json.loads(f.read() or "{}")
+
+# Alimtalk log
 
 LOGGING = {
     "version": 1,
