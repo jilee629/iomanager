@@ -218,19 +218,18 @@ def _manager_context(active_menu, active_submenu):
 def _normalized_phone_query(request, key="q"):
     return re.sub(r"\D", "", request.GET.get(key, ""))
 
-# PAGE_SIZE_CHOICES = (25, 50, 100)
+PAGE_SIZE_CHOICES = (25, 50, 100)
 
-# def _resolve_page_size(request, default=25):
-#     try:
-#         page_size = int(request.GET.get("page_size", str(default)))
-#     except (TypeError, ValueError):
-#         return default
-#     return page_size if page_size in PAGE_SIZE_CHOICES else default
+def _resolve_page_size(request, default=25):
+    try:
+        page_size = int(request.GET.get("page_size", str(default)))
+    except (TypeError, ValueError):
+        return default
+    return page_size if page_size in PAGE_SIZE_CHOICES else default
 
 
-def _paginate_queryset(request, queryset, *, default_page_size=50):
-    # page_size = _resolve_page_size(request, default=default_page_size)
-    page_size = 50
+def _paginate_queryset(request, queryset, *, default_page_size=25):
+    page_size = _resolve_page_size(request, default=default_page_size)
     paginator = Paginator(queryset, page_size)
     page_obj = paginator.get_page(request.GET.get("page"))
     return page_obj, page_obj.object_list, page_size
