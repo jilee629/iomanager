@@ -41,14 +41,14 @@ def create_drive_folder(folder_name):
     folder_id = file.get("id")
     return folder_id
 
-def upload_file(folder_id, file_name, mtype=None):
+def upload_file(folder_id, dir_path, file_name, mtype=None):
     creds = authenticate_google_drive()
     service = build('drive', 'v3', credentials=creds)
 
-    local_file_path = BASE_DIR / file_name
+    local_file_path = dir_path / file_name
 
     if mtype == "sqlite":
-        mimetype='application/x-sqlite3'
+        mimetype='application/vnd.sqlite3'
     elif mtype == "xlsx":
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     else:
