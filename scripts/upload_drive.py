@@ -13,7 +13,14 @@ if __name__ == "__main__":
     file_name = 'db.sqlite3'
     gdrive.upload_file(folder_id, dir_path, file_name, mtype='sqlite')
 
-    # text log
-    dir_path = BASE_DIR / logs
+    # log
+    dir_path = BASE_DIR / 'logs'
+
     file_name = 'alimtalk.log'
+    gdrive.upload_file(folder_id, dir_path, file_name)
+
+    file_name = 'expire_passes.log'
+    gdrive.upload_file(folder_id, dir_path, file_name)
+
+    file_name = 'upload_drive.log'
     gdrive.upload_file(folder_id, dir_path, file_name)
