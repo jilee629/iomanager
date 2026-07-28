@@ -77,12 +77,14 @@ def send_alimtalk(template_key, receiver_phone, context):
     def _request_send():
         try:
             response = requests.post(ALIGO_SEND_URL, data=payload, timeout=10)
+            res_json = response.json()
+            log_body = json.dumps(res_json, ensure_ascii=False)[:300]
             logger.info(
                 "Alimtalk sent key=%s receiver=%s status=%s body=%s",
                 template_key,
                 receiver_phone,
                 response.status_code,
-                response.text[:300],
+                log_body,
             )
         except Exception:
             logger.exception("Alimtalk request failed key=%s receiver=%s", template_key, receiver_phone)
