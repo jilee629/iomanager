@@ -36,6 +36,12 @@ def send_alimtalk(template_key, receiver_phone, context):
             "subject": "정기권 사용",
             "emtitle": "점핑몬스터 미사점",
             "message": "#{전화번호} 고객님\n\n#{사용시간}\n■ 사용: #{사용내역}\n■ 잔여: #{잔여내역}\n\n정기권이 사용되었습니다."
+        },
+        "pass_issue": {
+            "tpl_code": "UJ_7470",
+            "subject": "정기권 발행",
+            "emtitle": "점핑몬스터 미사점",
+            "message": "#{전화번호} 고객님\n\n#{발행시간}\n■ 발행: #{발행내역}\n\n정기권이 발행되었습니다."
         }
     }
     template = templates.get(template_key)

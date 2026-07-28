@@ -754,6 +754,23 @@ def pass_issue_view(request, visit_id):
                 customer_pass=customer_pass,
                 visit=visit,
             )
+
+            issue_lines = []
+            issue_lines.append(
+                f"{template.name} {issue_count} 장 (만료일: {customer_pass.expires_on.isoformat()})"
+            )
+            send_alimtalk(
+                "pass_issue",
+                visit.customer.phone_number,
+                {
+                    "전화번호": _phone_hyphen(visit.customer.phone_number),
+                    "발행시간": timezone.localtime().strftime("%Y-%m-%d %H:%M"),
+                    "발행내역": "\n".join(issue_lines),
+                },
+            )
+            
+            messages.success(request, "정기권 발행이 적용되었습니다.")
+
         return redirect("iomanager_app:customer_detail", visit_id=visit.id)
     return render(request, "iomanager_app/pass_issue.html", {"visit": visit, "templates": templates})
 
