@@ -6,14 +6,14 @@ from iomanager_app.models import CustomerPass, PassTransaction
 
 
 class Command(BaseCommand):
-    help = "Expires customer passes whose expiration date is today or earlier."
+    help = "Expires customer passes whose expiration date is yesterday or earlier (usable through expires_on)."
 
     def handle(self, *args, **options):
         today = timezone.localdate()
         expired_count = 0
 
         target_ids = list(
-            CustomerPass.objects.filter(remaining_count__gt=0, expires_on__lte=today).values_list("id", flat=True)
+            CustomerPass.objects.filter(remaining_count__gt=0, expires_on__lt=today).values_list("id", flat=True)
         )
 
         for pass_id in target_ids:
@@ -21,7 +21,7 @@ class Command(BaseCommand):
                 customer_pass = (
                     CustomerPass.objects.select_for_update()
                     .select_related("customer", "template")
-                    .filter(id=pass_id, remaining_count__gt=0, expires_on__lte=today)
+                    .filter(id=pass_id, remaining_count__gt=0, expires_on__lt=today)
                     .first()
                 )
                 if not customer_pass:

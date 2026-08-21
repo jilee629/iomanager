@@ -30,16 +30,17 @@ def _record_expired_pass_transactions(today):
     """
     Best-effort guard: if scheduled expire job was skipped, record missing
     expired transactions when managers open related pages.
+    Passes remain usable through expires_on and are expired the following day.
     """
     target_ids = list(
-        CustomerPass.objects.filter(remaining_count__gt=0, expires_on__lte=today).values_list("id", flat=True)
+        CustomerPass.objects.filter(remaining_count__gt=0, expires_on__lt=today).values_list("id", flat=True)
     )
     for pass_id in target_ids:
         with transaction.atomic():
             customer_pass = (
                 CustomerPass.objects.select_for_update()
                 .select_related("customer", "template")
-                .filter(id=pass_id, remaining_count__gt=0, expires_on__lte=today)
+                .filter(id=pass_id, remaining_count__gt=0, expires_on__lt=today)
                 .first()
             )
             if not customer_pass:
@@ -284,7 +285,7 @@ def _build_admin_status_context():
     active_passes_subquery = CustomerPass.objects.filter(
         customer_id=OuterRef("customer_id"),
         remaining_count__gt=0,
-        expires_on__gt=today,
+        expires_on__gte=today,
     )
     waiting_visits = (
         VisitSession.objects.select_related("customer")
@@ -422,7 +423,7 @@ def customer_info_view(request):
     if q:
         customers = customers.filter(phone_number__icontains=q)
 
-    active_passes = CustomerPass.objects.filter(customer_id=OuterRef("pk"), remaining_count__gt=0, expires_on__gt=today)
+    active_passes = CustomerPass.objects.filter(customer_id=OuterRef("pk"), remaining_count__gt=0, expires_on__gte=today)
     rows = customers.annotate(has_active_pass=Exists(active_passes))
     allowed_sort_fields = {
         "phone_number": "phone_number",
@@ -490,7 +491,7 @@ def customer_profile_view(request, customer_id):
 
     customer_passes = (
         customer.passes.select_related("template")
-        .filter(remaining_count__gt=0, expires_on__gt=today)
+        .filter(remaining_count__gt=0, expires_on__gte=today)
         .order_by("expires_on", "id")
     )
     visits = customer.visits.prefetch_related("order_items__product").order_by("-entered_at")
@@ -521,7 +522,7 @@ def pass_customer_view(request):
         "expires_on": "expires_on",
     }
     today = timezone.localdate()
-    rows = CustomerPass.objects.select_related("customer", "template").filter(remaining_count__gt=0, expires_on__gt=today)
+    rows = CustomerPass.objects.select_related("customer", "template").filter(remaining_count__gt=0, expires_on__gte=today)
     if q:
         rows = rows.filter(customer__phone_number__icontains=q)
     if sort_by not in allowed_sort_fields:
@@ -637,7 +638,7 @@ def customer_detail_view(request, visit_id):
     visit = get_object_or_404(VisitSession.objects.select_related("customer"), id=visit_id)
     today = timezone.localdate()
     products = ProductTemplate.objects.all()
-    customer_passes = visit.customer.passes.select_related("template").filter(remaining_count__gt=0, expires_on__gt=today)
+    customer_passes = visit.customer.passes.select_related("template").filter(remaining_count__gt=0, expires_on__gte=today)
     existing = {item.product_id: item for item in visit.order_items.all()}
 
     if request.method == "POST":
@@ -779,7 +780,7 @@ def pass_issue_view(request, visit_id):
 def pass_use_view(request, visit_id):
     visit = get_object_or_404(VisitSession.objects.select_related("customer"), id=visit_id)
     today = timezone.localdate()
-    customer_passes = visit.customer.passes.select_related("template").filter(remaining_count__gt=0, expires_on__gt=today)
+    customer_passes = visit.customer.passes.select_related("template").filter(remaining_count__gt=0, expires_on__gte=today)
     if request.method == "POST":
         action = request.POST.get("action")
         if action == "use":
@@ -803,7 +804,7 @@ def pass_use_view(request, visit_id):
                     row.id: row
                     for row in CustomerPass.objects.select_for_update()
                     .select_related("template")
-                    .filter(id__in=pass_ids, customer=visit.customer, expires_on__gt=today)
+                    .filter(id__in=pass_ids, customer=visit.customer, expires_on__gte=today)
                 }
 
                 for pass_id, use_count in requested_counts:
