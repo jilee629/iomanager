@@ -17,7 +17,7 @@
         <tbody>
             {% for row in rows %}
             <tr>
-                <td>{{ row.customer.phone_number|phone_hyphen }}</td>
+                <td><a href="{% url 'iomanager_app:customer_profile' row.customer.id %}">{{ row.customer.phone_number|phone_hyphen }}</a></td>
                 <td>
                     {% for item in row.order_items.all %}
                         {% if item.product %}{{ item.product.name }}{% elif item.product_name_snapshot %}{{ item.product_name_snapshot }}{% else %}(삭제된 상품){% endif %} x {{ item.quantity }}{% if not forloop.last %}, {% endif %}
