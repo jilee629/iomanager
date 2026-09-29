@@ -42,7 +42,7 @@
         <tbody>
             {% for row in rows %}
             <tr>
-                <td>{{ row.customer.phone_number|phone_hyphen }}</td>
+                <td><a href="{% url 'iomanager_app:customer_profile' row.customer.id %}">{{ row.customer.phone_number|phone_hyphen }}</a></td>
                 <td>{{ row.template.name }}</td>
                 <td>{{ row.remaining_count }}</td>
                 <td>{{ row.expires_on|date:"Y-m-d" }}</td>

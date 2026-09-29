@@ -17,7 +17,7 @@
         <tbody>
             {% for row in rows %}
             <tr>
-                <td>{{ row.customer.phone_number|phone_hyphen }}</td>
+                <td><a href="{% url 'iomanager_app:customer_profile' row.customer.id %}">{{ row.customer.phone_number|phone_hyphen }}</a></td>
                 <td>{% if row.template %}{{ row.template.name }}{% elif row.template_name_snapshot %}{{ row.template_name_snapshot }}{% else %}(삭제된 템플릿){% endif %}</td>
                 <td>{{ row.quantity }}</td>
                 <td>{{ row.get_status_display }}</td>
