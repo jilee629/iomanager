@@ -221,7 +221,7 @@ def _normalized_phone_query(request, key="q"):
 
 PAGE_SIZE_CHOICES = (25, 50, 100)
 
-def _resolve_page_size(request, default=25):
+def _resolve_page_size(request, default=50):
     try:
         page_size = int(request.GET.get("page_size", str(default)))
     except (TypeError, ValueError):
@@ -229,7 +229,7 @@ def _resolve_page_size(request, default=25):
     return page_size if page_size in PAGE_SIZE_CHOICES else default
 
 
-def _paginate_queryset(request, queryset, *, default_page_size=25):
+def _paginate_queryset(request, queryset, *, default_page_size=50):
     page_size = _resolve_page_size(request, default=default_page_size)
     paginator = Paginator(queryset, page_size)
     page_obj = paginator.get_page(request.GET.get("page"))
